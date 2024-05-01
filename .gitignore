@@ -1,0 +1,2 @@
+# Ignore all contents of .env file
+.env

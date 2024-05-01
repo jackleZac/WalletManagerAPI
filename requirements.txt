@@ -1,0 +1,7 @@
+# Dependencies for Database
+Flask-PyMongo==2.3.0
+pymongo[srv]==3.10.1
+
+# Dependencies for Testing
+nose==1.3.7
+coverage==7.5.0

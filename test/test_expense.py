@@ -6,7 +6,7 @@ import dotenv
 
 # Add parent directory to Python path
 sys.path.append('../')
-from expense import app, connect_to_db
+from app import app, connect_to_db
 
 class TestExpenses(unittest.TestCase):
     """Test cases for expenses operations"""

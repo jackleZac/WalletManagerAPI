@@ -1,7 +1,10 @@
-# Dependencies for Database
+# Install Flask
+Flask==3.0.3
+
+# Install dependencies for database management
 Flask-PyMongo==2.3.0
 pymongo[srv]==3.10.1
 
-# Dependencies for Testing
+# Install dependencies for testing purposes
 nose==1.3.7
 coverage==7.5.0

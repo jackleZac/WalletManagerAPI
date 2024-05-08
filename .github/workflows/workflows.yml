@@ -25,7 +25,7 @@ jobs:
 
     - name: Run unit tests
       run: |
-        python3 -m unittest tests.test_expense
+        python3 -m unittest tests/test_expense
 
     - name: Build a Docker image
       run: docker build -t expense .

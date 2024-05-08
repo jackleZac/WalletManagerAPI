@@ -24,8 +24,7 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run unit tests
-      run: |
-        python3 -m unittest tests/test_expense
+      run: python3 -m unittest tests.test_expense
 
     - name: Build a Docker image
       run: docker build -t expense .

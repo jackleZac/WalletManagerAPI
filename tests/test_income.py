@@ -6,7 +6,7 @@ import dotenv
 
 # Add parent directory to Python path
 sys.path.append('../')
-from app import app, connect_to_db
+from app import app, add_income, get_incomes, update_income, delete_income, connect_to_db;
 
 class TestIncome(unittest.TestCase):
     """Test cases for handling income"""

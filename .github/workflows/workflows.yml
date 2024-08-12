@@ -28,7 +28,9 @@ jobs:
       run: export PYTHONPATH=$PYTHONPATH:${{ github.workspace }}
       
     - name: Run unit tests
-      run: python3 -m unittest tests.test_expense
+      run: | 
+        python3 -m unittest tests.test_expense
+        python3 -m unittest tests.test_income
 
     - name: Build a Docker image
       run: docker build -t expense .

@@ -26,7 +26,8 @@ class TestIncome(unittest.TestCase):
             "source": "Salary",
             "amount": 6000,
             "description": "A monthly salary as Data Analyst",
-            "date": datetime.datetime.now().isoformat()
+            "date": datetime.datetime.now().isoformat(),
+            "wallet_id": "A1"
         }
         # Make a request to add_income function
         response = self.app.post('/income', json=test_income)
@@ -39,6 +40,8 @@ class TestIncome(unittest.TestCase):
         # Assert that the details are accurate
         self.assertEqual(income_from_database["amount"], test_income["amount"])
         self.assertEqual(income_from_database["source"], test_income["source"])
+        self.assertEqual(income_from_database["wallet_id"], test_income["wallet_id"])
+    
     
     def test_list_income(self):
         """It should get a list of all existing incomes"""
@@ -46,19 +49,22 @@ class TestIncome(unittest.TestCase):
             "source": "Salary",
             "amount": 6000,
             "description": "A monthly salary as Data Analyst",
-            "date": datetime.datetime.now().isoformat()
+            "date": datetime.datetime.now().isoformat(),
+            "wallet_id": "A1"
         },
            {
             "source": "Bonus",
             "amount": 1200,
             "description": "A monthly bonus as a Data Analyts",
-            "date": datetime.datetime.now().isoformat()
+            "date": datetime.datetime.now().isoformat(),
+            "wallet_id": "A1"
         },
            {
             "source": "Second Job",
             "amount": 2000,
             "description": "Part-time Gym Trainer at Eagle GYm, London",
-            "date": datetime.datetime.now().isoformat()
+            "date": datetime.datetime.now().isoformat(),
+            "wallet_id": "A1"
         }]
         # Insert a list of incomes into MongoDB Atlas
         insert_income = self.db.insert_many(test_incomes)
@@ -77,7 +83,8 @@ class TestIncome(unittest.TestCase):
             "source": "Salary",
             "amount": 6000,
             "description": "A monthly salary as Data Analyst",
-            "date": datetime.datetime.now().isoformat()
+            "date": datetime.datetime.now().isoformat(),
+            "wallet_id": "A1"
         }
         # Insert an income into MongoDB Atlas
         insert_income = self.db.insert_one(test_income)
@@ -95,7 +102,8 @@ class TestIncome(unittest.TestCase):
                 "source": "Salary",
                 "amount": 1000,
                 "description": "Earn Side Hustle at Fiverr",
-                "date": datetime.datetime.now().isoformat() }
+                "date": datetime.datetime.now().isoformat(),
+                "wallet_id": "A2" }
             # Make a PUT request to update existing income
             response = self.app.put(f'/income/{test_income_id}', json=update_income, content_type='application/json')
             # Assert that an income has been successfully updated
@@ -106,6 +114,7 @@ class TestIncome(unittest.TestCase):
             # Assert the income has been accurately updated
             self.assertEqual(updated_income["source"], update_income["source"])
             self.assertEqual(updated_income["amount"], update_income["amount"])
+            self.assertEqual(updated_income["wallet_id"], update_income["wallet_id"])
         else:
             # Raise an error if expense was not inserted
             self.fail("Failed to insert expense into database")
@@ -116,7 +125,8 @@ class TestIncome(unittest.TestCase):
             "source": "Salary",
             "amount": 1000,
             "description": "Earn Side Hustle at Fiverr",
-            "date": datetime.datetime.now().isoformat() } 
+            "date": datetime.datetime.now().isoformat(),
+            "wallet_id": "A1" } 
         # Insert an expense into MongoDB 
         insert_income = self.db.insert_one(test_income)
         self.assertTrue(insert_income.acknowledged)

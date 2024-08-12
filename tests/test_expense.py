@@ -23,7 +23,7 @@ class TestExpenses(unittest.TestCase):
     
     def test_add_expense(self):
         """It should add an expense and assert that it exists"""
-        expense_to_be_added = { "amount": 70.00, "date": datetime.datetime.now().isoformat(), "category": "Fitness", "description": "A Monthly Payment for Eagle Gym Membership", "repeatMonthly": True }
+        expense_to_be_added = { "amount": 70.00, "date": datetime.datetime.now().isoformat(), "category": "Fitness", "description": "A Monthly Payment for Eagle Gym Membership", "wallet_id": "A1" }
         # Make a POST request to def add_expense()
         response = self.app.post('/expense', json=expense_to_be_added)
         # Fetch the expense from MongoDB atlas
@@ -35,15 +35,15 @@ class TestExpenses(unittest.TestCase):
         self.assertEqual(expense_from_database["amount"], expense_to_be_added["amount"])
         self.assertEqual(expense_from_database["category"], expense_to_be_added["category"])
         self.assertEqual(expense_from_database["description"], expense_to_be_added["description"])
-        self.assertEqual(expense_from_database["repeatMonthly"], expense_to_be_added["repeatMonthly"])
+        self.assertEqual(expense_from_database["wallet_id"], expense_to_be_added["wallet_id"])
         
     def test_list_expense(self):
         """It should get all expenses from database"""
         # Create a list of THREE expenses
         expenses_to_be_added = [
-            {"amount": 70.00, "date": datetime.datetime.now().isoformat(), "category": "Fitness", "description": "A Monthly Payment for Eagle Gym Membership", "repeatMonthly": True },
-            {"amount": 50.00, "date": datetime.datetime.now().isoformat(), "category": "Meals", "description": "Lunch at McDonald's", "repeatMonthly": False },
-            {"amount": 40.00, "date": datetime.datetime.now().isoformat(), "category": "Car", "description": "Paid Gas", "repeatMonthly": False }, ]
+            {"amount": 70.00, "date": datetime.datetime.now().isoformat(), "category": "Fitness", "description": "A Monthly Payment for Eagle Gym Membership", "wallet_id": "A1" },
+            {"amount": 50.00, "date": datetime.datetime.now().isoformat(), "category": "Meals", "description": "Lunch at McDonald's", "wallet_id": "A1" },
+            {"amount": 40.00, "date": datetime.datetime.now().isoformat(), "category": "Car", "description": "Paid Gas", "wallet_id": "A2" }, ]
         # Insert the list of expenses into MongoDB 
         self.db.insert_many(expenses_to_be_added)
         # Make a GET request to def get_expenses()
@@ -70,7 +70,7 @@ class TestExpenses(unittest.TestCase):
             "date": datetime.datetime.now().isoformat(), 
             "category": "Fitness", 
             "description": "A Monthly Payment for Eagle Gym Membership", 
-            "repeatMonthly": True} 
+            "wallet_id": "A1"} 
         # Insert an expense into MongoDB 
         insert_expense = self.db.insert_one(expense_to_be_added)
         self.assertTrue(insert_expense.acknowledged)
@@ -91,7 +91,7 @@ class TestExpenses(unittest.TestCase):
                 "date": datetime.datetime.now().isoformat(), # Update date
                 "category": "Fitness", # category remains unchanged
                 "description": "A Monthly Payment for BJJ Membership", # Update description
-                "repeatMonthly": True} # repeatMonthly remains unchanged
+                "wallet_id": "A2"} # wallet_id is changes
             # Make a PUT request to def update_expense()
             response = self.app.put(f'/expense/{test_expense_id}', json=expense_updated, content_type='application/json')
             # Assert that the expense has been successfully updated
@@ -103,6 +103,7 @@ class TestExpenses(unittest.TestCase):
             # Assert that an expense has been updated
             self.assertEqual(expense_from_database["amount"], expense_updated["amount"])
             self.assertEqual(expense_from_database["description"], expense_updated["description"])
+            self.assertEqual(expense_from_database["wallet_id"], expense_updated["wallet_id"])
         else:
             # Raise an error if expense was not inserted
              self.fail("Failed to insert expense into database")
@@ -114,7 +115,7 @@ class TestExpenses(unittest.TestCase):
             "date":datetime.datetime.now().isoformat(), 
             "category": "Fitness", 
             "description": "A Monthly Payment for Eagle Gym Membership", 
-            "repeatMonthly": True} 
+            "wallet_id": "A1"} 
         # Insert an expense into MongoDB 
         insert_expense = self.db.insert_one(expense_to_be_added)
         self.assertTrue(insert_expense.acknowledged)

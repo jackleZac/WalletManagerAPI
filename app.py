@@ -60,7 +60,7 @@ def get_expenses():
     # Convert the ObjectId instances to a JSON serializable format
     expenses = [
         {"_id": str(expense["_id"]), "amount": expense["amount"], "date": expense["date"], 
-         "category": expense["category"],"description": expense["description"], "repeatMonthly": expense["repeatMonthly"]} 
+         "category": expense["category"],"description": expense["description"], "wallet_id": expense["wallet_id"]} 
         for expense in list_of_expenses
     ]
     # Return a JSON document to the front-end
@@ -127,8 +127,14 @@ def get_incomes():
     list_of_incomes = database_collection.find({})
     # Convert the ObjectId instances to a JSON serializable format
     incomes = [
-        {"_id": str(income["_id"]), "source": income["source"], "amount": income["amount"], 
-         "description": income["description"], "date": income["date"]} 
+            {
+                "_id": str(income["_id"]),
+                "source": income.get("source", ""),
+                "amount": income.get("amount", 0),
+                "description": income.get("description", ""),
+                "date": income.get("date", ""),
+                "wallet_id": income.get("wallet_id", "")
+            } 
         for income in list_of_incomes
     ]
     # Return a JSON document to the front-end

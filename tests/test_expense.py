@@ -43,7 +43,7 @@ class TestExpenses(unittest.TestCase):
         expenses_to_be_added = [
             {"amount": 70.00, "date": datetime.datetime.now().isoformat(), "category": "Fitness", "description": "A Monthly Payment for Eagle Gym Membership", "wallet_id": "A1" },
             {"amount": 50.00, "date": datetime.datetime.now().isoformat(), "category": "Meals", "description": "Lunch at McDonald's", "wallet_id": "A1" },
-            {"amount": 40.00, "date": datetime.datetime.now().isoformat(), "category": "Car", "description": "Paid Gas", "wallet_id": "A2" }, ]
+            {"amount": 40.00, "date": datetime.datetime.now().isoformat(), "category": "Car", "description": "Paid Gas", "wallet_id": "A2" } ]
         # Insert the list of expenses into MongoDB 
         self.db.insert_many(expenses_to_be_added)
         # Make a GET request to def get_expenses()
@@ -91,7 +91,7 @@ class TestExpenses(unittest.TestCase):
                 "date": datetime.datetime.now().isoformat(), # Update date
                 "category": "Fitness", # category remains unchanged
                 "description": "A Monthly Payment for BJJ Membership", # Update description
-                "wallet_id": "A2"} # wallet_id is changes
+                "wallet_id": "A2"} # wallet_id is changed
             # Make a PUT request to def update_expense()
             response = self.app.put(f'/expense/{test_expense_id}', json=expense_updated, content_type='application/json')
             # Assert that the expense has been successfully updated

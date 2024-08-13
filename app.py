@@ -21,9 +21,7 @@ def connect_to_db():
             print('SUCCESS: MongoDB is connected!')
             # Getting a database
             db = client['myfinance']
-            # Getting a collection
-            collection = db['income']
-            return collection
+            return client, db
         else:
             print('ERROR: MongoDB is not connected!')
     except pymongo.errors.ServerSelectionTimeoutError:
@@ -31,7 +29,10 @@ def connect_to_db():
     except Exception as e:
         print('ERROR: An unexpected error occurrred: {e}')
     
-database_collection = connect_to_db()
+client, database_collection = connect_to_db()
+expense_collection = database_collection['expense']
+income_collection = database_collection['income']
+wallet_collection = database_collection['wallet']
 
 ############################################################################################
 #####                         ADD EXPENSE FUNCTIONS HERE                              ######
@@ -48,7 +49,7 @@ def add_expense():
     # Update the format of expense date
     expense["date"] = date
     # Insert an expense into MongoDB Atlas
-    database_collection.insert_one(expense)
+    expense_collection.insert_one(expense)
     # Return a success message
     return jsonify({"Message": "An expense has been succesfully added"}), 201
 
@@ -56,11 +57,17 @@ def add_expense():
 def get_expenses():
     """It should return a list of all available expenses"""
     # Get a list of expenses from MongoDB
-    list_of_expenses = database_collection.find({})
+    list_of_expenses = expense_collection.find({})
     # Convert the ObjectId instances to a JSON serializable format
     expenses = [
-        {"_id": str(expense["_id"]), "amount": expense["amount"], "date": expense["date"], 
-         "category": expense["category"],"description": expense["description"], "wallet_id": expense["wallet_id"]} 
+        {
+         "_id": str(expense["_id"]), 
+         "amount": expense["amount"], 
+         "date": expense["date"], 
+         "category": expense["category"],
+         "description": expense["description"], 
+         "wallet_id": expense["wallet_id"]
+         } 
         for expense in list_of_expenses
     ]
     # Return a JSON document to the front-end
@@ -79,7 +86,7 @@ def update_expense(_id):
     # Log the received ID for debugging
     app.logger.debug(f"Received ID: {_id}")
     # Find and update the expense in MongoDB
-    response = database_collection.find_one_and_update(
+    response = expense_collection.find_one_and_update(
         {"_id": ObjectId(_id)},
         {"$set": updated_expense} )
     if response is None:
@@ -93,7 +100,7 @@ def update_expense(_id):
 def delete_expense(_id):
     """It should delete an expense"""
     # Find and delete an expense from MongoDB
-    response = database_collection.find_one_and_delete({"_id": ObjectId(_id)})
+    response = expense_collection.find_one_and_delete({"_id": ObjectId(_id)})
     if response is None:
         # An expense is not found hence causing failure to delete
         return jsonify({"message": f'Failed to delete expense with id: {_id}'}), 404
@@ -116,7 +123,7 @@ def add_income():
     # Update the format of expense date
     income["date"] = date
     # Insert income into database
-    database_collection.insert_one(income)
+    income_collection.insert_one(income)
     # Return a success message
     return jsonify({"Message": "An income has been succesfully added"}), 201
     
@@ -124,7 +131,7 @@ def add_income():
 def get_incomes():
     """It should return a list of all existing incomes"""
     # Get a list of incomes from MongoDB
-    list_of_incomes = database_collection.find({})
+    list_of_incomes = income_collection.find({})
     # Convert the ObjectId instances to a JSON serializable format
     incomes = [
             {
@@ -153,7 +160,7 @@ def update_income(_id):
     # Log the received ID for debugging
     app.logger.debug(f"Received ID: {_id}")
     # Find and update the income in MongoDB
-    response = database_collection.find_one_and_update(
+    response = income_collection.find_one_and_update(
         {"_id": ObjectId(_id)},
         {"$set": updated_expense} )
     if response is None:
@@ -167,13 +174,19 @@ def update_income(_id):
 def delete_income(_id):
     """It should delete an income"""
     # Find and delete an income from MongoDB
-    response = database_collection.find_one_and_delete({"_id": ObjectId(_id)})
+    response = income_collection.find_one_and_delete({"_id": ObjectId(_id)})
     if response is None:
         # An income is not found hence causing failure to delete
         return jsonify({"message": f'Failed to delete income with id: {_id}'}), 404
     else:
         # An income is found and deleted
         return jsonify({"message": f'income with id: {_id} is deleted'}), 200
+
+
+############################################################################################
+#####                         ADD INCOME FUNCTIONS HERE                              ######
+############################################################################################
+
 
 if __name__ == '__main__':   
     app.run(host='0.0.0.0', port=5000)

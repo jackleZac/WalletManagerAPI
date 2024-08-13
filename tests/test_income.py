@@ -12,13 +12,15 @@ class TestIncome(unittest.TestCase):
     """Test cases for handling income"""
     def setUp(self):
         # Create a connection to MongoDB Atlas
-        self.db = connect_to_db()
+        self.client, self.db = connect_to_db()
+        # Create a connection to collection 'income'
+        self.collection = self.db['income']
         # Initialize test client to simulate requests to Flask App
         self.app = app.test_client()
         
     def tearDown(self):
         # Clean up resources in database
-        self.db.delete_many({})
+        self.collection.delete_many({})
         
     def test_add_income(self):
         """It should add income to database and assert that it exists"""
@@ -34,7 +36,7 @@ class TestIncome(unittest.TestCase):
         # Assert that an expense has been created
         self.assertEqual(response.status_code, 201)
         # Fetch the expense from MongoDB atlas
-        income_from_database = self.db.find_one({"description": test_income["description"]})
+        income_from_database = self.collection.find_one({"description": test_income["description"]})
         # Assert the expense is not null
         self.assertIsNotNone(income_from_database)
         # Assert that the details are accurate
@@ -67,7 +69,7 @@ class TestIncome(unittest.TestCase):
             "wallet_id": "A1"
         }]
         # Insert a list of incomes into MongoDB Atlas
-        insert_income = self.db.insert_many(test_incomes)
+        insert_income = self.collection.insert_many(test_incomes)
         self.assertTrue(insert_income.acknowledged)
         # Make a GET request to get a list of existing incomes
         response = self.app.get('/income')
@@ -87,11 +89,11 @@ class TestIncome(unittest.TestCase):
             "wallet_id": "A1"
         }
         # Insert an income into MongoDB Atlas
-        insert_income = self.db.insert_one(test_income)
+        insert_income = self.collection.insert_one(test_income)
         self.assertTrue(insert_income.acknowledged)
         if (insert_income):
             # If succeeds, fetch the income from MongoDB Atlas
-            inserted_income = self.db.find_one({"description": test_income["description"]})
+            inserted_income = self.collection.find_one({"description": test_income["description"]})
             # Assert that the income exists
             self.assertIsNotNone(inserted_income)
             print(inserted_income)
@@ -109,7 +111,7 @@ class TestIncome(unittest.TestCase):
             # Assert that an income has been successfully updated
             self.assertEqual(response.status_code, 200)
             # Fetch the expense from MongoDB Atlas
-            updated_income = self.db.find_one({"_id": test_income_id})
+            updated_income = self.collection.find_one({"_id": test_income_id})
             self.assertIsNotNone(updated_income)
             # Assert the income has been accurately updated
             self.assertEqual(updated_income["source"], update_income["source"])
@@ -128,10 +130,10 @@ class TestIncome(unittest.TestCase):
             "date": datetime.datetime.now().isoformat(),
             "wallet_id": "A1" } 
         # Insert an expense into MongoDB 
-        insert_income = self.db.insert_one(test_income)
+        insert_income = self.collection.insert_one(test_income)
         self.assertTrue(insert_income.acknowledged)
         # Retrieve expense from database
-        inserted_income = self.db.find_one({"description": test_income["description"]})
+        inserted_income = self.collection.find_one({"description": test_income["description"]})
         # Assert that the expense exists
         self.assertIsNotNone(inserted_income)
         # Assert that the expense ID is not None
@@ -143,6 +145,6 @@ class TestIncome(unittest.TestCase):
         # Assert that the expense has been successfully updated
         self.assertEqual(response.status_code, 200)
         # Make an attempt to fetch the expense again
-        deleted_income = self.db.find_one({"_id": test_income_id})
+        deleted_income = self.collection.find_one({"_id": test_income_id})
         # Assert that the expense is not found
         self.assertIsNone(deleted_income)    

@@ -4,7 +4,7 @@ from bson import ObjectId
 import pymongo
 import datetime
 import os 
-
+from bson import ObjectId
 
 
 app = Flask(__name__)
@@ -120,7 +120,7 @@ def add_income():
     # Parse ISO 8601 formatted date string from the request
     iso_date_string = income["date"]
     date = datetime.datetime.strptime(iso_date_string, "%Y-%m-%dT%H:%M:%S.%f")
-    # Update the format of expense date
+    # Update the format of income date
     income["date"] = date
     # Insert income into database
     income_collection.insert_one(income)
@@ -151,18 +151,18 @@ def get_incomes():
 def update_income(_id):
     """It should update an income"""
     # Get a content of updated income
-    updated_expense = request.json
+    updated_income = request.json
     # Parse ISO 8601 formatted date string from the request
-    iso_date_string = updated_expense["date"]
+    iso_date_string = updated_income["date"]
     date = datetime.datetime.strptime(iso_date_string, "%Y-%m-%dT%H:%M:%S.%f")
     # Update the format of income date
-    updated_expense["date"] = date
+    updated_income["date"] = date
     # Log the received ID for debugging
     app.logger.debug(f"Received ID: {_id}")
     # Find and update the income in MongoDB
     response = income_collection.find_one_and_update(
         {"_id": ObjectId(_id)},
-        {"$set": updated_expense} )
+        {"$set": updated_income} )
     if response is None:
         # An income with the specified id is not found
         return jsonify({"message": f'income with id: {_id} is not found'}), 404
@@ -176,7 +176,7 @@ def delete_income(_id):
     # Find and delete an income from MongoDB
     response = income_collection.find_one_and_delete({"_id": ObjectId(_id)})
     if response is None:
-        # An income is not found hence causing failure to delete
+        # An income is not found hence is unable to delete
         return jsonify({"message": f'Failed to delete income with id: {_id}'}), 404
     else:
         # An income is found and deleted
@@ -184,9 +184,82 @@ def delete_income(_id):
 
 
 ############################################################################################
-#####                         ADD INCOME FUNCTIONS HERE                              ######
+#####                         ADD WALLET FUNCTIONS HERE                              ######
 ############################################################################################
 
+@app.route('/wallet', methods=['POST'])
+def add_wallet():
+    """It should add a wallet to database"""
+    # Receive parsed data sent from the front-end (React)
+    wallet = request.json
+    # Parse ISO 8601 formatted date string from the request
+    iso_date_string = wallet["created_at"]
+    date = datetime.datetime.strptime(iso_date_string, "%Y-%m-%dT%H:%M:%S.%f")
+    # Update the format of wallet date
+    wallet["created_at"] = date
+    wallet["updated_at"] = date
+    # Generate a unique wallet_id
+    wallet_id = str(ObjectId())
+    wallet["wallet_id"] = wallet_id
+    # Insert an wallet into MongoDB Atlas
+    wallet_collection.insert_one(wallet)
+    # Return a success message
+    return jsonify({"Message": "A wallet has been succesfully added"}), 201
+
+@app.route('/wallet', methods=['GET'])
+def get_wallets():
+    """It should return a list of all available expenses"""
+    # Get a list of wallets from MongoDB
+    list_of_wallets = wallet_collection.find({})
+    # Convert the ObjectId instances to a JSON serializable format
+    wallets = [
+        {
+         "wallet_id": str(wallet["wallet_id"]), 
+         "balance": wallet["balance"], 
+         "created_at": wallet["created_at"], 
+         "updated_at": wallet["updated_at"],
+         "type": wallet["type"], 
+         "target": wallet["target"]
+         } 
+        for wallet in list_of_wallets
+    ]
+    # Return a JSON document to the front-end
+    return jsonify({'wallets': wallets})
+
+@app.route('/wallet/<string:wallet_id>', methods=["PUT"])
+def update_wallet(wallet_id):
+    """It should update a wallet"""
+    # Get a content of updated wallet
+    updated_wallet = request.json
+    # Parse ISO 8601 formatted date string from the request
+    iso_date_string = updated_wallet["updated_at"]
+    date = datetime.datetime.strptime(iso_date_string, "%Y-%m-%dT%H:%M:%S.%f")
+    # Update the format of wallet date
+    updated_wallet["updated_at"] = date
+    # Log the received ID for debugging
+    app.logger.debug(f"Received ID: {wallet_id}")
+    # Find and update the wallet in MongoDB
+    response = wallet_collection.find_one_and_update(
+        {"wallet_id": wallet_id},
+        {"$set": updated_wallet} )
+    if response is None:
+        # A wallet with the specified id is not found
+        return jsonify({"message": f'Wallet with id: {wallet_id} is not found'}), 404
+    else:
+        # A wallet is found and updated
+        return jsonify({"message": f'Wallet with id: {wallet_id} is updated'}), 200
+
+@app.route('/wallet/<string:wallet_id>', methods=["DELETE"])
+def delete_wallet(wallet_id):
+    """It should delete a wallet"""
+    # Find and delete a wallet from MongoDB
+    response = wallet_collection.find_one_and_delete({"wallet_id": wallet_id})
+    if response is None:
+        # A wallet id is not found hence, is unable to delete
+        return jsonify({"message": f'Failed to delete expense with id: {wallet_id}'}), 404
+    else:
+        # A wallet id is found and deleted
+        return jsonify({"message": f'Expense with id: {wallet_id} is deleted'}), 200
 
 if __name__ == '__main__':   
     app.run(host='0.0.0.0', port=5000)

@@ -33,11 +33,11 @@ class TestIncome(unittest.TestCase):
         }
         # Make a request to add_income function
         response = self.app.post('/income', json=test_income)
-        # Assert that an expense has been created
+        # Assert that an income has been created
         self.assertEqual(response.status_code, 201)
-        # Fetch the expense from MongoDB atlas
+        # Fetch the income from MongoDB atlas
         income_from_database = self.collection.find_one({"description": test_income["description"]})
-        # Assert the expense is not null
+        # Assert the income is not null
         self.assertIsNotNone(income_from_database)
         # Assert that the details are accurate
         self.assertEqual(income_from_database["amount"], test_income["amount"])
@@ -110,7 +110,7 @@ class TestIncome(unittest.TestCase):
             response = self.app.put(f'/income/{test_income_id}', json=update_income, content_type='application/json')
             # Assert that an income has been successfully updated
             self.assertEqual(response.status_code, 200)
-            # Fetch the expense from MongoDB Atlas
+            # Fetch the income from MongoDB Atlas
             updated_income = self.collection.find_one({"_id": test_income_id})
             self.assertIsNotNone(updated_income)
             # Assert the income has been accurately updated
@@ -118,8 +118,8 @@ class TestIncome(unittest.TestCase):
             self.assertEqual(updated_income["amount"], update_income["amount"])
             self.assertEqual(updated_income["wallet_id"], update_income["wallet_id"])
         else:
-            # Raise an error if expense was not inserted
-            self.fail("Failed to insert expense into database")
+            # Raise an error if income was not inserted
+            self.fail("Failed to insert income into database")
             
     def test_delete_income(self):
         """It should delete an income"""
@@ -129,22 +129,22 @@ class TestIncome(unittest.TestCase):
             "description": "Earn Side Hustle at Fiverr",
             "date": datetime.datetime.now().isoformat(),
             "wallet_id": "A1" } 
-        # Insert an expense into MongoDB 
+        # Insert an income into MongoDB 
         insert_income = self.collection.insert_one(test_income)
         self.assertTrue(insert_income.acknowledged)
-        # Retrieve expense from database
+        # Retrieve income from database
         inserted_income = self.collection.find_one({"description": test_income["description"]})
-        # Assert that the expense exists
+        # Assert that the income exists
         self.assertIsNotNone(inserted_income)
-        # Assert that the expense ID is not None
+        # Assert that the income ID is not None
         self.assertIsNotNone(inserted_income["_id"])
         test_income_id = inserted_income["_id"]
         print(test_income_id)
         # Make a DELETE request to delete income
         response = self.app.delete(f'/income/{test_income_id}')
-        # Assert that the expense has been successfully updated
+        # Assert that the income has been successfully updated
         self.assertEqual(response.status_code, 200)
-        # Make an attempt to fetch the expense again
+        # Make an attempt to fetch the income again
         deleted_income = self.collection.find_one({"_id": test_income_id})
-        # Assert that the expense is not found
+        # Assert that the income is not found
         self.assertIsNone(deleted_income)    

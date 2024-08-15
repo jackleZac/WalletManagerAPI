@@ -14,13 +14,15 @@ class TestExpenses(unittest.TestCase):
         # Create a connection to MongoDB Atlas 
         self.client, self.db = connect_to_db()
         # Create a connection to collection 'expense'
-        self.collection = self.db['expense']
+        self.collection_expense = self.db['expense']
+        # Create a connection to collection 'wallet'
+        self.collection_wallet = self.db['wallet']
         # Initialize test client to simulate requests to Flask App
         self.app = app.test_client()
         
     def tearDown(self):
         # Clean up all resources in database
-        self.collection.delete_many({})
+        self.collection_expense.delete_many({})
         
     
     def test_add_expense(self):
@@ -29,7 +31,7 @@ class TestExpenses(unittest.TestCase):
         # Make a POST request to def add_expense()
         response = self.app.post('/expense', json=expense_to_be_added)
         # Fetch the expense from MongoDB atlas
-        expense_from_database = self.collection.find_one({"description": expense_to_be_added["description"]})
+        expense_from_database = self.collection_expense.find_one({"description": expense_to_be_added["description"]})
         # Assert that an expense has been created
         self.assertEqual(response.status_code, 201)
         self.assertIsNotNone(expense_from_database)
@@ -47,7 +49,7 @@ class TestExpenses(unittest.TestCase):
             {"amount": 50.00, "date": datetime.datetime.now().isoformat(), "category": "Meals", "description": "Lunch at McDonald's", "wallet_id": "A1" },
             {"amount": 40.00, "date": datetime.datetime.now().isoformat(), "category": "Car", "description": "Paid Gas", "wallet_id": "A2" } ]
         # Insert the list of expenses into MongoDB 
-        self.collection.insert_many(expenses_to_be_added)
+        self.collection_expense.insert_many(expenses_to_be_added)
         # Make a GET request to def get_expenses()
         response = self.app.get('/expense')
         # Assert that it has been successfully retrieved
@@ -74,12 +76,12 @@ class TestExpenses(unittest.TestCase):
             "description": "A Monthly Payment for Eagle Gym Membership", 
             "wallet_id": "A1"} 
         # Insert an expense into MongoDB 
-        insert_expense = self.collection.insert_one(expense_to_be_added)
+        insert_expense = self.collection_expense.insert_one(expense_to_be_added)
         self.assertTrue(insert_expense.acknowledged)
         # Proceed when expense has been successfully inserted
         if (insert_expense):
             # Retrieve expense from database
-            test_expense = self.collection.find_one({"description": expense_to_be_added["description"]})
+            test_expense = self.collection_expense.find_one({"description": expense_to_be_added["description"]})
             # Assert that the expense exists
             self.assertIsNotNone(test_expense)
             print(test_expense)
@@ -99,7 +101,7 @@ class TestExpenses(unittest.TestCase):
             # Assert that the expense has been successfully updated
             self.assertEqual(response.status_code, 200)
             # Fetch the expense from MongoDB atlas
-            expense_from_database = self.collection.find_one({"_id": test_expense_id})
+            expense_from_database = self.collection_expense.find_one({"_id": test_expense_id})
             # Assert that an expense exists
             self.assertIsNotNone(expense_from_database)
             # Assert that an expense has been updated
@@ -119,10 +121,10 @@ class TestExpenses(unittest.TestCase):
             "description": "A Monthly Payment for Eagle Gym Membership", 
             "wallet_id": "A1"} 
         # Insert an expense into MongoDB 
-        insert_expense = self.collection.insert_one(expense_to_be_added)
+        insert_expense = self.collection_expense.insert_one(expense_to_be_added)
         self.assertTrue(insert_expense.acknowledged)
         # Retrieve expense from database
-        test_expense = self.collection.find_one({"description": expense_to_be_added["description"]})
+        test_expense = self.collection_expense.find_one({"description": expense_to_be_added["description"]})
         # Assert that the expense exists
         self.assertIsNotNone(test_expense)
         # Assert that the expense ID is not None
@@ -133,7 +135,7 @@ class TestExpenses(unittest.TestCase):
         # Assert that the expense has been successfully updated
         self.assertEqual(response.status_code, 200)
         # Make an attempt to fetch the expense again
-        deleted_expense = self.collection.find_one({"_id": test_expense_id})
+        deleted_expense = self.collection_expense.find_one({"_id": test_expense_id})
         # Assert that the expense is not found
         self.assertIsNone(deleted_expense)
   

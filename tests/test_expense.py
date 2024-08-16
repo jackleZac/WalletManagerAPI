@@ -1,8 +1,9 @@
 import unittest
 import sys
-import datetime
+from datetime import datetime
 import json
 import dotenv
+from bson import ObjectId
 
 # Add parent directory to Python path
 sys.path.append('../')
@@ -23,11 +24,30 @@ class TestExpenses(unittest.TestCase):
     def tearDown(self):
         # Clean up all resources in database
         self.collection_expense.delete_many({})
-        
-    
+        self.collection_wallet.delete_many({})
+         
     def test_add_expense(self):
         """It should add an expense and assert that it exists"""
-        expense_to_be_added = { "amount": 70.00, "date": datetime.datetime.now().isoformat(), "category": "Fitness", "description": "A Monthly Payment for Eagle Gym Membership", "wallet_id": "A1" }
+        # Create and insert a wallet into database
+        wallet_id = str(ObjectId())
+        test_wallet = {
+            "wallet_id": wallet_id,
+            "name": "Account 1",
+            "balance": 6000.00,
+            "created_at": datetime.now(),
+            "updated_at": datetime.now(),
+            "type": "Savings",
+            "target": 10000.00
+        }
+        self.collection_wallet.insert_one(test_wallet)
+        # Create an income with the the wallet_id
+        expense_to_be_added = { 
+            "amount": 70.00, 
+            "date": datetime.now().isoformat(), 
+            "category": "Fitness", 
+            "description": "A Monthly Payment for Eagle Gym Membership", 
+            "wallet_id": wallet_id 
+        }
         # Make a POST request to def add_expense()
         response = self.app.post('/expense', json=expense_to_be_added)
         # Fetch the expense from MongoDB atlas
@@ -40,14 +60,37 @@ class TestExpenses(unittest.TestCase):
         self.assertEqual(expense_from_database["category"], expense_to_be_added["category"])
         self.assertEqual(expense_from_database["description"], expense_to_be_added["description"])
         self.assertEqual(expense_from_database["wallet_id"], expense_to_be_added["wallet_id"])
+        # Fetch the corresponding wallet from database
+        wallet_from_database = self.collection_wallet.find_one({"wallet_id": wallet_id})
+        # Calculate the expected balance of wallet
+        expected_balance = test_wallet["balance"] + expense_to_be_added["amount"]
+        # Assert that the balance of wallet is updated
+        self.assertEqual(wallet_from_database["balance"], expected_balance)
         
     def test_list_expense(self):
         """It should get all expenses from database"""
         # Create a list of THREE expenses
-        expenses_to_be_added = [
-            {"amount": 70.00, "date": datetime.datetime.now().isoformat(), "category": "Fitness", "description": "A Monthly Payment for Eagle Gym Membership", "wallet_id": "A1" },
-            {"amount": 50.00, "date": datetime.datetime.now().isoformat(), "category": "Meals", "description": "Lunch at McDonald's", "wallet_id": "A1" },
-            {"amount": 40.00, "date": datetime.datetime.now().isoformat(), "category": "Car", "description": "Paid Gas", "wallet_id": "A2" } ]
+        expenses_to_be_added = [{
+            "amount": 70.00, 
+            "date": datetime.now().isoformat(), 
+            "category": "Fitness", 
+            "description": "A Monthly Payment for Eagle Gym Membership", 
+            "wallet_id": "A1" 
+        },
+        {
+            "amount": 50.00, 
+            "date": datetime.now().isoformat(), 
+            "category": "Meals", 
+            "description": "Lunch at McDonald's", 
+            "wallet_id": "A1" 
+        },
+        {
+            "amount": 40.00, 
+            "date": datetime.now().isoformat(), 
+            "category": "Car", 
+            "description": "Paid Gas", 
+            "wallet_id": "A2" 
+        }]
         # Insert the list of expenses into MongoDB 
         self.collection_expense.insert_many(expenses_to_be_added)
         # Make a GET request to def get_expenses()
@@ -69,12 +112,36 @@ class TestExpenses(unittest.TestCase):
             
     def test_update_expense(self):
         """It should update an expense from a database"""
+        # Create and insert a wallet into database
+        wallet_id1 = str(ObjectId())
+        wallet_id2 = str(ObjectId())
+        test_wallets = [{
+            "wallet_id": wallet_id1,
+            "name": "Account 1",
+            "balance": 6000.00, # Initial amount is set to 6000
+            "created_at": datetime.now(),
+            "updated_at": datetime.now(),
+            "type": "Savings",
+            "target": 10000.00
+        },
+            {
+            "wallet_id": wallet_id2,
+            "name": "Account 1",
+            "balance": 1000.00, # Initial amount is set to 1000
+            "created_at": datetime.now(),
+            "updated_at": datetime.now(),
+            "type": "Savings",
+            "target": 10000.00
+        }]
+        self.collection_wallet.insert_many(test_wallets)
+        # Create an income with the wallet_id
         expense_to_be_added = {
-            "amount": 70.00, 
-            "date": datetime.datetime.now().isoformat(), 
+            "amount": 70.00, # An amount is set to 6000 and is added to wallet1
+            "date": datetime.now(), 
             "category": "Fitness", 
             "description": "A Monthly Payment for Eagle Gym Membership", 
-            "wallet_id": "A1"} 
+            "wallet_id": wallet_id1 # An expense is assigned to wallet_id1
+        } 
         # Insert an expense into MongoDB 
         insert_expense = self.collection_expense.insert_one(expense_to_be_added)
         self.assertTrue(insert_expense.acknowledged)
@@ -92,10 +159,10 @@ class TestExpenses(unittest.TestCase):
             # Make changes to an expense amount, date and description
             expense_updated = {
                 "amount": 241.00, # Update price
-                "date": datetime.datetime.now().isoformat(), # Update date
+                "date": datetime.now().isoformat(), # Update date
                 "category": "Fitness", # category remains unchanged
                 "description": "A Monthly Payment for BJJ Membership", # Update description
-                "wallet_id": "A2"} # wallet_id is changed
+                "wallet_id": wallet_id2} # wallet_id is changed
             # Make a PUT request to def update_expense()
             response = self.app.put(f'/expense/{test_expense_id}', json=expense_updated, content_type='application/json')
             # Assert that the expense has been successfully updated
@@ -111,20 +178,49 @@ class TestExpenses(unittest.TestCase):
         else:
             # Raise an error if expense was not inserted
              self.fail("Failed to insert expense into database")
-             
+        # Fetch the corresponding wallet from database
+        wallet1_from_database = self.collection_wallet.find_one({"wallet_id": wallet_id1})
+        wallet2_from_database = self.collection_wallet.find_one({"wallet_id": wallet_id2})
+        # Calculate the expected balance of wallet1
+        expected_balance_wallet1 = test_wallets[0]["balance"] + expense_to_be_added["amount"]
+        # Calculate the expected balance of wallet2
+        expected_balance_wallet2 = test_wallets[1]["balance"] - expense_updated["amount"]
+        # Print debug information
+        print(f"Expected wallet1 balance: {expected_balance_wallet1}")
+        print(f"Actual wallet1 balance: {wallet1_from_database['balance']}")
+        print(f"Expected wallet2 balance: {expected_balance_wallet2}")
+        print(f"Actual wallet2 balance: {wallet2_from_database['balance']}")
+        # Assert that the balance of wallet1 added by 70
+        self.assertEqual(wallet1_from_database["balance"], expected_balance_wallet1)
+        # Assert that the balance of wallet2 is subtracted by 241
+        self.assertEqual(wallet2_from_database["balance"], expected_balance_wallet2)
+        
     def test_delete_expense(self):
         """It should delete an expense"""
-        expense_to_be_added = {
+        # Create and insert a wallet into database
+        wallet_id = str(ObjectId())
+        test_wallet = {
+            "wallet_id": wallet_id,
+            "name": "Account 1",
+            "balance": 6000.00,
+            "created_at": datetime.now(),
+            "updated_at": datetime.now(),
+            "type": "Savings",
+            "target": 10000.00
+        }
+        self.collection_wallet.insert_one(test_wallet)
+        # Create an income with the the wallet_id
+        expense_to_be_deleted = {
             "amount": 70.00, 
-            "date":datetime.datetime.now().isoformat(), 
+            "date":datetime.now(), 
             "category": "Fitness", 
             "description": "A Monthly Payment for Eagle Gym Membership", 
-            "wallet_id": "A1"} 
+            "wallet_id": wallet_id} 
         # Insert an expense into MongoDB 
-        insert_expense = self.collection_expense.insert_one(expense_to_be_added)
+        insert_expense = self.collection_expense.insert_one(expense_to_be_deleted)
         self.assertTrue(insert_expense.acknowledged)
         # Retrieve expense from database
-        test_expense = self.collection_expense.find_one({"description": expense_to_be_added["description"]})
+        test_expense = self.collection_expense.find_one({"description": expense_to_be_deleted["description"]})
         # Assert that the expense exists
         self.assertIsNotNone(test_expense)
         # Assert that the expense ID is not None
@@ -138,7 +234,8 @@ class TestExpenses(unittest.TestCase):
         deleted_expense = self.collection_expense.find_one({"_id": test_expense_id})
         # Assert that the expense is not found
         self.assertIsNone(deleted_expense)
-  
-
-if __name__=='__main__':
-    unittest.main()
+        # Assert that the balance of corresponding wallet is updated
+        expected_balance = test_wallet["balance"] - expense_to_be_deleted["amount"]
+        # Fetch the corresponding wallet from database
+        wallet_from_database = self.collection_wallet.find_one({"wallet_id": wallet_id})
+        self.assertEqual(wallet_from_database["balance"], expected_balance)

@@ -43,6 +43,9 @@ def add_expense():
     """It should add an expense to database"""
     # Receive parsed data sent from the front-end (React)
     expense = request.json
+    # Get wallet_id and amount of an income
+    wallet_id = expense["wallet_id"]
+    amount = expense["amount"]
     # Parse ISO 8601 formatted date string from the request
     iso_date_string = expense["date"]
     date = datetime.datetime.strptime(iso_date_string, "%Y-%m-%dT%H:%M:%S.%f")
@@ -50,8 +53,19 @@ def add_expense():
     expense["date"] = date
     # Insert an expense into MongoDB Atlas
     expense_collection.insert_one(expense)
-    # Return a success message
-    return jsonify({"Message": "An expense has been succesfully added"}), 201
+    # Find the corresponding wallet
+    wallet = wallet_collection.find_one({"wallet_id": wallet_id})
+    # Update a balance of the wallet
+    if wallet:
+            new_balance = wallet["balance"] + amount
+            wallet_collection.update_one(
+                {"wallet_id": wallet_id},
+                {"$set": {"balance": new_balance, "updated_at": datetime.datetime.now()}}
+            )
+            return jsonify({"message": "Income added and wallet balance updated"}), 201
+    else:
+        return jsonify({"error": "Wallet not found"}), 404
+
 
 @app.route('/expense', methods=['GET'])
 def get_expenses():
@@ -78,6 +92,20 @@ def update_expense(_id):
     """It should update an expense"""
     # Get a content of updated expense
     updated_expense = request.json
+    # Get the previous version of an income (outdated)
+    outdated_expense = expense_collection.find_one({"_id": ObjectId(_id)})
+    # Check if wallet_id and amount are modified (Skip if None are changed)
+    if ((updated_expense["wallet_id"] != outdated_expense["wallet_id"]) or (updated_expense["amount"] != outdated_expense["amount"])):
+        if (updated_expense["wallet_id"] != outdated_expense["wallet_id"]):
+            # Scenario 1: Changes include wallet_id
+            wallet_collection.update_one({"wallet_id": outdated_expense["wallet_id"]},
+                {"$inc": {"balance": + outdated_expense["amount"]}, "$set": {"updated_at": datetime.datetime.now()}})
+            wallet_collection.update_one({"wallet_id": updated_expense["wallet_id"]},
+                {"$inc": {"balance": - updated_expense["amount"]}, "$set": {"updated_at": datetime.datetime.now()}})
+        elif (updated_expense["wallet_id"] == outdated_expense["wallet_id"]) and (updated_expense["amount"] != outdated_expense["amount"]):
+            # Scenario 2: Changes NOT include wallet_id
+            wallet_collection.update_one({"wallet_id": outdated_expense["wallet_id"]},
+            {"$set": {"balance": + outdated_expense["amount"] - updated_expense["amount"]}, "$set": {"updated_at": datetime.datetime.now()}})
     # Parse ISO 8601 formatted date string from the request
     iso_date_string = updated_expense["date"]
     date = datetime.datetime.strptime(iso_date_string, "%Y-%m-%dT%H:%M:%S.%f")
@@ -105,6 +133,9 @@ def delete_expense(_id):
         # An expense is not found hence causing failure to delete
         return jsonify({"message": f'Failed to delete expense with id: {_id}'}), 404
     else:
+        # Find and update the balance of corresponding wallet
+        wallet_collection.update_one({"wallet_id": response["wallet_id"]},
+            {"$inc": {"balance": - response["amount"]}, "$set": {"updated_at": datetime.datetime.now()}})
         # An expense is found and deleted
         return jsonify({"message": f'Expense with id: {_id} is deleted'}), 200
 
@@ -134,7 +165,7 @@ def add_income():
             new_balance = wallet["balance"] + amount
             wallet_collection.update_one(
                 {"wallet_id": wallet_id},
-                {"$set": {"balance": new_balance, "updated_at": datetime.datetime.utcnow()}}
+                {"$set": {"balance": new_balance, "updated_at": datetime.datetime.now()}}
             )
             return jsonify({"message": "Income added and wallet balance updated"}), 201
     else:
@@ -172,13 +203,13 @@ def update_income(_id):
         if (updated_income["wallet_id"] != outdated_income["wallet_id"]):
             # Scenario 1: Changes include wallet_id
             wallet_collection.update_one({"wallet_id": outdated_income["wallet_id"]},
-                {"$inc": {"balance": - outdated_income["amount"]}})
+                {"$inc": {"balance": - outdated_income["amount"]}, "$set": {"updated_at": datetime.datetime.now()}})
             wallet_collection.update_one({"wallet_id": updated_income["wallet_id"]},
-                {"$inc": {"balance": + updated_income["amount"]}})
+                {"$inc": {"balance": + updated_income["amount"]}, "$set": {"updated_at": datetime.datetime.now()}})
         elif (updated_income["wallet_id"] == outdated_income["wallet_id"]) and (updated_income["amount"] != outdated_income["amount"]):
             # Scenario 2: Changes NOT include wallet_id
             wallet_collection.update_one({"wallet_id": outdated_income["wallet_id"]},
-            {"$inc": {"balance": - outdated_income["amount"] + updated_income["amount"]}})
+            {"$inc": {"balance": - outdated_income["amount"] + updated_income["amount"]}, "$set": {"updated_at": datetime.datetime.now()}})
     # Parse ISO 8601 formatted date of the updated income
     iso_date_string = updated_income["date"]
     date = datetime.datetime.strptime(iso_date_string, "%Y-%m-%dT%H:%M:%S.%f")
@@ -208,7 +239,7 @@ def delete_income(_id):
     else:
         # Find and update the balance of corresponding wallet
         wallet_collection.update_one({"wallet_id": response["wallet_id"]},
-            {"$inc": {"balance": - response["amount"]}})
+            {"$inc": {"balance": - response["amount"]}, "$set": {"updated_at": datetime.datetime.now()}})
         # An income is deleted and the corresponding wallet has been updated
         return jsonify({"message": f'income with id: {_id} is deleted'}), 200
 

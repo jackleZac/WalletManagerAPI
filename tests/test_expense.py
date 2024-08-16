@@ -63,7 +63,7 @@ class TestExpenses(unittest.TestCase):
         # Fetch the corresponding wallet from database
         wallet_from_database = self.collection_wallet.find_one({"wallet_id": wallet_id})
         # Calculate the expected balance of wallet
-        expected_balance = test_wallet["balance"] + expense_to_be_added["amount"]
+        expected_balance = test_wallet["balance"] - expense_to_be_added["amount"]
         # Assert that the balance of wallet is updated
         self.assertEqual(wallet_from_database["balance"], expected_balance)
         

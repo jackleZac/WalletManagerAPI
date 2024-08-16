@@ -57,12 +57,12 @@ def add_expense():
     wallet = wallet_collection.find_one({"wallet_id": wallet_id})
     # Update a balance of the wallet
     if wallet:
-            new_balance = wallet["balance"] + amount
+            new_balance = wallet["balance"] - amount
             wallet_collection.update_one(
                 {"wallet_id": wallet_id},
                 {"$set": {"balance": new_balance, "updated_at": datetime.datetime.now()}}
             )
-            return jsonify({"message": "Income added and wallet balance updated"}), 201
+            return jsonify({"message": "Expense added and wallet balance updated"}), 201
     else:
         return jsonify({"error": "Wallet not found"}), 404
 

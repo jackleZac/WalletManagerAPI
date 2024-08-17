@@ -35,8 +35,8 @@ class TestIncome(unittest.TestCase):
             "wallet_id": wallet_id,
             "name": "Account 1",
             "balance": 6000.00,
-            "created_at": datetime.now(),
-            "updated_at": datetime.now(),
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
             "type": "Savings",
             "target": 10000.00
         }
@@ -74,21 +74,21 @@ class TestIncome(unittest.TestCase):
             "source": "Salary",
             "amount": 6000,
             "description": "A monthly salary as Data Analyst",
-            "date": datetime.now(),
+            "date": datetime.now().isoformat(),
             "wallet_id": "A1"
         },
            {
             "source": "Bonus",
             "amount": 1200,
             "description": "A monthly bonus as a Data Analyts",
-            "date": datetime.now(),
+            "date": datetime.now().isoformat(),
             "wallet_id": "A1"
         },
            {
             "source": "Second Job",
             "amount": 2000,
             "description": "Part-time Gym Trainer at Eagle GYm, London",
-            "date": datetime.now(),
+            "date": datetime.now().isoformat(),
             "wallet_id": "A1"
         }]
         # Insert a list of incomes into MongoDB Atlas
@@ -111,8 +111,8 @@ class TestIncome(unittest.TestCase):
             "wallet_id": wallet_id1,
             "name": "Account 1",
             "balance": 6000.00, # Initial amount is set to 6000
-            "created_at": datetime.now(),
-            "updated_at": datetime.now(),
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
             "type": "Savings",
             "target": 10000.00
         },
@@ -120,8 +120,8 @@ class TestIncome(unittest.TestCase):
             "wallet_id": wallet_id2,
             "name": "Account 1",
             "balance": 0.00, # Initial amount is set to 0
-            "created_at": datetime.now(),
-            "updated_at": datetime.now(),
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
             "type": "Savings",
             "target": 10000.00
         }]
@@ -131,7 +131,7 @@ class TestIncome(unittest.TestCase):
             "source": "Salary",
             "amount": 6000, # An amount is set to 6000 and is added to wallet1
             "description": "A monthly salary as Data Analyst",
-            "date": datetime.now(),
+            "date": datetime.now().isoformat(),
             "wallet_id": wallet_id1 # An income is assigned to wallet_id1
         }
         # Insert an income into MongoDB Atlas
@@ -189,8 +189,8 @@ class TestIncome(unittest.TestCase):
             "wallet_id": wallet_id,
             "name": "Account 1",
             "balance": 6000.00,
-            "created_at": datetime.now(),
-            "updated_at": datetime.now(),
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
             "type": "Savings",
             "target": 10000.00
         }

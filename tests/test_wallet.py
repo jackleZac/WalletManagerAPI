@@ -26,14 +26,11 @@ class TestWallet(unittest.TestCase):
         
     def test_add_wallet(self):
         """It should add wallet to database and assert that it exists"""
-        # Create an instance of current datetime
-        datetime_current = datetime.now()
-        formatted_date = datetime_current.isoformat()
         test_wallet = {
             "name": "Account 1",
             "balance": 6000.00,
-            "created_at": formatted_date,
-            "updated_at": formatted_date,
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
             "type": "Savings",
             "target": 10000.00
         }
@@ -47,8 +44,8 @@ class TestWallet(unittest.TestCase):
         self.assertIsNotNone(wallet_from_database)
         # Assert that the details are accurate
         self.assertEqual(wallet_from_database["balance"], test_wallet["balance"])
-        self.assertAlmostEqual(wallet_from_database["created_at"], datetime.fromisoformat(test_wallet["created_at"]), delta=timedelta(seconds=1))
-        self.assertAlmostEqual(wallet_from_database["updated_at"], datetime.fromisoformat(test_wallet["updated_at"]), delta=timedelta(seconds=1))
+        self.assertAlmostEqual(wallet_from_database["created_at"], test_wallet["created_at"], delta=timedelta(seconds=1))
+        self.assertAlmostEqual(wallet_from_database["updated_at"], test_wallet["updated_at"], delta=timedelta(seconds=1))
         self.assertEqual(wallet_from_database["type"], test_wallet["type"])
         self.assertEqual(wallet_from_database["target"], test_wallet["target"])
     
@@ -59,8 +56,8 @@ class TestWallet(unittest.TestCase):
             "wallet_id": str(ObjectId()),
             "name": "Account 1",
             "balance": 6000.00,
-            "created_at": datetime.now(),
-            "updated_at": datetime.now(),
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
             "type": "Savings",
             "target": 10000.00
         },
@@ -68,8 +65,8 @@ class TestWallet(unittest.TestCase):
             "wallet_id": str(ObjectId()),
             "name": "Account 2",
             "balance": 5000.00,
-            "created_at": datetime.now(),
-            "updated_at": datetime.now(),
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
             "type": "Savings",
             "target": 10000.00
         },
@@ -77,8 +74,8 @@ class TestWallet(unittest.TestCase):
             "wallet_id": str(ObjectId()),
             "name": "Account 3",
             "balance": 4000.00,
-            "created_at": datetime.now(),
-            "updated_at": datetime.now(),
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
             "type": "Savings",
             "target": 10000.00
         }]
@@ -99,8 +96,8 @@ class TestWallet(unittest.TestCase):
             "wallet_id": str(ObjectId()),
             "name": "Account 1",
             "balance": 6000.00,
-            "created_at": datetime.now(),
-            "updated_at": datetime.now(),
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
             "type": "Savings",
             "target": 10000.00
         }
@@ -135,7 +132,7 @@ class TestWallet(unittest.TestCase):
             # Assert that the balance is accurately updated
             self.assertEqual(updated_wallet["balance"], update_wallet["balance"])
             # Assert that the modification date of wallet is updated
-            self.assertAlmostEqual(updated_wallet["updated_at"], datetime.fromisoformat(update_wallet["updated_at"]), delta=timedelta(seconds=1))
+            self.assertAlmostEqual(updated_wallet["updated_at"], update_wallet["updated_at"], delta=timedelta(seconds=1))
         else:
             # Raise an error if wallet was not inserted
             self.fail("Failed to insert wallet into database")
@@ -146,7 +143,7 @@ class TestWallet(unittest.TestCase):
             "wallet_id": str(ObjectId()),
             "name": "Account 1",
             "balance": 1000.00,
-            "updated_at": datetime.now(),
+            "updated_at": datetime.now().isoformat(),
             "type": "Savings",
             "target": 10000.00  } 
         # Insert an wallet into MongoDB 

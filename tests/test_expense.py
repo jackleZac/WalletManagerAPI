@@ -34,8 +34,8 @@ class TestExpenses(unittest.TestCase):
             "wallet_id": wallet_id,
             "name": "Account 1",
             "balance": 6000.00,
-            "created_at": datetime.now(),
-            "updated_at": datetime.now(),
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
             "type": "Savings",
             "target": 10000.00
         }
@@ -119,8 +119,8 @@ class TestExpenses(unittest.TestCase):
             "wallet_id": wallet_id1,
             "name": "Account 1",
             "balance": 6000.00, # Initial amount is set to 6000
-            "created_at": datetime.now(),
-            "updated_at": datetime.now(),
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
             "type": "Savings",
             "target": 10000.00
         },
@@ -128,8 +128,8 @@ class TestExpenses(unittest.TestCase):
             "wallet_id": wallet_id2,
             "name": "Account 1",
             "balance": 1000.00, # Initial amount is set to 1000
-            "created_at": datetime.now(),
-            "updated_at": datetime.now(),
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
             "type": "Savings",
             "target": 10000.00
         }]
@@ -137,7 +137,7 @@ class TestExpenses(unittest.TestCase):
         # Create an income with the wallet_id
         expense_to_be_added = {
             "amount": 70.00, # An amount is set to 6000 and is added to wallet1
-            "date": datetime.now(), 
+            "date": datetime.now().isoformat(), 
             "category": "Fitness", 
             "description": "A Monthly Payment for Eagle Gym Membership", 
             "wallet_id": wallet_id1 # An expense is assigned to wallet_id1
@@ -203,8 +203,8 @@ class TestExpenses(unittest.TestCase):
             "wallet_id": wallet_id,
             "name": "Account 1",
             "balance": 6000.00,
-            "created_at": datetime.now(),
-            "updated_at": datetime.now(),
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
             "type": "Savings",
             "target": 10000.00
         }
@@ -212,7 +212,7 @@ class TestExpenses(unittest.TestCase):
         # Create an income with the the wallet_id
         expense_to_be_deleted = {
             "amount": 70.00, 
-            "date":datetime.now(), 
+            "date":datetime.now().isoformat(), 
             "category": "Fitness", 
             "description": "A Monthly Payment for Eagle Gym Membership", 
             "wallet_id": wallet_id} 

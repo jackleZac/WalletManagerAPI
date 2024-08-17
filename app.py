@@ -49,11 +49,6 @@ def add_expense():
     # Get wallet_id and amount of an income
     wallet_id = expense["wallet_id"]
     amount = expense["amount"]
-    # Parse ISO 8601 formatted date string from the request
-    iso_date_string = expense["date"]
-    date = datetime.datetime.strptime(iso_date_string, "%Y-%m-%dT%H:%M:%S.%f")
-    # Update the format of expense date
-    expense["date"] = date
     # Insert an expense into MongoDB Atlas
     expense_collection.insert_one(expense)
     # Find the corresponding wallet
@@ -109,11 +104,6 @@ def update_expense(_id):
             # Scenario 2: Changes NOT include wallet_id
             wallet_collection.update_one({"wallet_id": outdated_expense["wallet_id"]},
             {"$set": {"balance": + outdated_expense["amount"] - updated_expense["amount"]}, "$set": {"updated_at": datetime.datetime.now()}})
-    # Parse ISO 8601 formatted date string from the request
-    iso_date_string = updated_expense["date"]
-    date = datetime.datetime.strptime(iso_date_string, "%Y-%m-%dT%H:%M:%S.%f")
-    # Update the format of expense date
-    updated_expense["date"] = date
     # Log the received ID for debugging
     app.logger.debug(f"Received ID: {_id}")
     # Find and update the expense in MongoDB
@@ -154,11 +144,6 @@ def add_income():
     # Get wallet_id and amount of an income
     wallet_id = income["wallet_id"]
     amount = income["amount"]
-    # Parse ISO 8601 formatted date string from the request
-    iso_date_string = income["date"]
-    date = datetime.datetime.strptime(iso_date_string, "%Y-%m-%dT%H:%M:%S.%f")
-    # Update the format of income date
-    income["date"] = date
     # Insert income into database
     income_collection.insert_one(income)
     # Find the corresponding wallet
@@ -213,11 +198,6 @@ def update_income(_id):
             # Scenario 2: Changes NOT include wallet_id
             wallet_collection.update_one({"wallet_id": outdated_income["wallet_id"]},
             {"$inc": {"balance": - outdated_income["amount"] + updated_income["amount"]}, "$set": {"updated_at": datetime.datetime.now()}})
-    # Parse ISO 8601 formatted date of the updated income
-    iso_date_string = updated_income["date"]
-    date = datetime.datetime.strptime(iso_date_string, "%Y-%m-%dT%H:%M:%S.%f")
-    # Update the format of income date to Datetime
-    updated_income["date"] = date
     # Log the received ID for debugging
     app.logger.debug(f"Received ID: {_id}")
     # Find and update the income in MongoDB
@@ -256,12 +236,6 @@ def add_wallet():
     """It should add a wallet to database"""
     # Receive parsed data sent from the front-end (React)
     wallet = request.json
-    # Parse ISO 8601 formatted date string from the request
-    iso_date_string = wallet["created_at"]
-    date = datetime.datetime.strptime(iso_date_string, "%Y-%m-%dT%H:%M:%S.%f")
-    # Update the format of wallet date
-    wallet["created_at"] = date
-    wallet["updated_at"] = date
     # Generate a unique wallet_id
     wallet_id = str(ObjectId())
     wallet["_id"] = wallet_id
@@ -296,11 +270,6 @@ def update_wallet(wallet_id):
     """It should update a wallet"""
     # Get a content of updated wallet
     updated_wallet = request.json
-    # Parse ISO 8601 formatted date string from the request
-    iso_date_string = updated_wallet["updated_at"]
-    date = datetime.datetime.strptime(iso_date_string, "%Y-%m-%dT%H:%M:%S.%f")
-    # Update the format of wallet date
-    updated_wallet["updated_at"] = date
     # Log the received ID for debugging
     app.logger.debug(f"Received ID: {wallet_id}")
     # Find and update the wallet in MongoDB

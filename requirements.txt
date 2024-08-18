@@ -1,0 +1,8 @@
+# Install Flask
+Flask==3.0.3
+
+# Install dependencies for database management
+Flask-PyMongo==2.3.0
+pymongo[srv]==3.10.1
+python-dotenv==0.21.1
+

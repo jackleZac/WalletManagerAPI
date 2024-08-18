@@ -1,0 +1,4 @@
+# Exclude all contents of .env file from version control
+.env
+# Exclude venv/ directory from version control
+venv/

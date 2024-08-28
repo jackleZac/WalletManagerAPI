@@ -1,7 +1,12 @@
 import unittest
+import sys
 import io
+import os
 from flask import Flask
-from app import app  # Replace with the actual import of your Flask app
+
+# Add parent directory to Python path
+sys.path.append('../')
+from app import app, scan_receipt
 
 class ScanReceiptTestCase(unittest.TestCase):
     def setUp(self):
@@ -11,8 +16,12 @@ class ScanReceiptTestCase(unittest.TestCase):
         self.app.config['TESTING'] = True
 
     def test_scan_receipt(self):
-        # Create a sample in-memory file to upload
-        sample_image = (io.BytesIO(b"fake image data"), 'receipt.jpg')
+        # Load a real image from disk or a valid image content in bytes
+        receipt_path = os.path.join(os.path.dirname(__file__), 'receipt.jpeg')
+        with open(receipt_path, 'rb') as image_file:
+            image_data = image_file.read()
+
+        sample_image = (io.BytesIO(image_data), 'receipt.jpg')
 
         # Simulate a POST request to /scan-receipt with a file
         response = self.client.post(

@@ -6,6 +6,9 @@ import datetime
 import os 
 from bson import ObjectId
 from flask_cors import CORS
+from google.cloud import documentai_v1beta3 as documentai
+from google.oauth2 import service_account
+import os
 
 
 app = Flask(__name__)
@@ -228,7 +231,7 @@ def delete_income(_id):
 
 
 ############################################################################################
-#####                         ADD WALLET FUNCTIONS HERE                              ######
+#####                         ADD WALLET FUNCTIONS HERE                              #######
 ############################################################################################
 
 @app.route('/wallet', methods=['POST'])
@@ -294,6 +297,65 @@ def delete_wallet(wallet_id):
     else:
         # A wallet id is found and deleted
         return jsonify({"message": f'Expense with id: {wallet_id} is deleted'}), 200
+
+
+############################################################################################
+#####                         ADD SCAN RECEIPT FUNCTIONS HERE                         ######
+############################################################################################
+
+
+# Load your Google Cloud service account credentials from the environment variable
+credentials_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+credentials = service_account.Credentials.from_service_account_file(credentials_path)
+
+# Set Document AI processor details
+project_id = 'apt-reality-433311-j4'
+location = 'us'
+processor_id = 'b348edb6e0374f40'  # This is your processor ID
+
+@app.route('/scan-receipt', methods=['POST'])
+def scan_receipt():
+    # Check if a file was uploaded
+    if 'receipt' not in request.files:
+        return jsonify({"error": "No receipt file uploaded"}), 400
+
+    file = request.files['receipt']
+    image_content = file.read()
+
+    # Initialize the Document AI client
+    client = documentai.DocumentProcessorServiceClient(credentials=credentials)
+
+    # Configure the request to Document AI
+    name = f"projects/{project_id}/locations/{location}/processors/{processor_id}"
+    document = documentai.types.Document(content=image_content, mime_type='image/jpeg')
+    doc_request = documentai.types.ProcessRequest(name=name, raw_document=documentai.types.RawDocument(content=image_content, mime_type='image/jpeg'))
+
+    # Process the document
+    result = client.process_document(request=doc_request)
+
+    # Extract relevant information from the result
+    document = result.document
+    amount = None
+    description = None
+    date = None
+
+    for entity in document.entities:
+        if entity.type_ == "total_amount":
+            amount = entity.mention_text
+        elif entity.type_ == "line_item[description]":
+            description = entity.mention_text
+        elif entity.type_ == "receipt_date":
+            date = entity.mention_text
+    print(amount)
+    print(description)
+    print(date)
+    # Return the extracted data as a JSON response
+    return jsonify({
+        "amount": amount,
+        "description": description,
+        "date": date,
+        "message": "Expense created. Please confirm to add it."
+    })
 
 if __name__ == '__main__':   
     app.run(host='0.0.0.0', port=5000)

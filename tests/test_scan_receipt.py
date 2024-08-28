@@ -30,5 +30,4 @@ class ScanReceiptTestCase(unittest.TestCase):
         # Optionally, check if the values are correct (depending on the test case)
         self.assertEqual(data['message'], "Expense created. Please confirm to add it.")
 
-if __name__ == '__main__':
-    unittest.main()
+    

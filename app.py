@@ -359,13 +359,21 @@ def scan_receipt():
                 print(f"Error parsing date: {e}")
                 iso_date = None
        
+        if amount:
+            try:
+                float_amount = float(amount.replace(',', ''))
+                int_amount = round(float_amount)
+            except (ValueError, TypeError) as e:
+                print(f"Error parsing date: {e}")
+                iso_date = None
+                
         # Print extracted information for debugging
-        print("Total Amount:", amount)
+        print("Total Amount:", int_amount)
         print("Description:", description)
         print("Receipt Date:", iso_date)
         # Return the extracted data as a JSON response
         return jsonify({
-            "amount": amount,
+            "amount": int_amount,
             "description": description,
             "date": iso_date,
             "message": "Expense created. Please confirm to add it."

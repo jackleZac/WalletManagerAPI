@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from bson import ObjectId
 import pymongo
+from dateutil import parser
 import datetime
 import os 
 from bson import ObjectId
@@ -339,6 +340,7 @@ def scan_receipt():
         amount = None
         description = None
         date = None
+        iso_date = None
         
         for entity in document.entities:
             if entity.type_ == "total_amount":
@@ -347,16 +349,25 @@ def scan_receipt():
                 description = entity.mention_text
             if entity.type_ == "receipt_date":
                 date = entity.mention_text
-                
+        
+        # Convert various date formats to ISO format (yyyy-mm-dd)
+        if date:
+            try:
+                parsed_date = parser.parse(date)
+                iso_date = parsed_date.date().isoformat()
+            except (ValueError, TypeError) as e:
+                print(f"Error parsing date: {e}")
+                iso_date = None
+       
         # Print extracted information for debugging
         print("Total Amount:", amount)
         print("Description:", description)
-        print("Receipt Date:", date)
+        print("Receipt Date:", iso_date)
         # Return the extracted data as a JSON response
         return jsonify({
             "amount": amount,
             "description": description,
-            "date": date,
+            "date": iso_date,
             "message": "Expense created. Please confirm to add it."
         })
     except Exception as e:

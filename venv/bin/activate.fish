@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/root/home/projects/web-apps/budgeting-app/expense-server/venv"
+set -gx VIRTUAL_ENV "/root/home/projects/web-apps/personal-finance-management/WalletManagerAPI/venv"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH

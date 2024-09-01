@@ -1,4 +1,4 @@
-#!/root/home/projects/web-apps/budgeting-app/expense-server/venv/bin/python3
+#!/root/home/projects/web-apps/personal-finance-management/WalletManagerAPI/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys

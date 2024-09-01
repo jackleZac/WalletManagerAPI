@@ -13,8 +13,7 @@ import os
 
 
 app = Flask(__name__)
-# Allow cross-origin sharing with React at http://localhost:3000
-CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
+CORS(app)
 
 # Load config from .env file
 load_dotenv()

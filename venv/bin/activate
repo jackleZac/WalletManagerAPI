@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/root/home/projects/web-apps/budgeting-app/expense-server/venv"
+VIRTUAL_ENV="/root/home/projects/web-apps/personal-finance-management/WalletManagerAPI/venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

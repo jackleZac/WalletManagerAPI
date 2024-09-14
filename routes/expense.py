@@ -4,8 +4,6 @@ from bson import ObjectId
 import pymongo
 from dateutil import parser
 import datetime
-import os 
-from bson import ObjectId
 import os
 
 expense_bp = Blueprint('expense', __name__)

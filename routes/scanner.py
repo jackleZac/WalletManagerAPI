@@ -1,12 +1,5 @@
 from flask import Blueprint, request, jsonify
-from dotenv import load_dotenv
-from bson import ObjectId
-import pymongo
 from dateutil import parser
-import datetime
-import os 
-from bson import ObjectId
-from flask_cors import CORS
 from google.cloud import documentai_v1beta3 as documentai
 from google.oauth2 import service_account
 import os

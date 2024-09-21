@@ -110,23 +110,18 @@ def update_budget(budget_id):
     if response is None:
         # A budget with the specified id is not found
         return jsonify({"message": f'budget with id: {budget_id} is not found'}), 404
-
     # Find and delete all wallets associated with this budget_id
     wallets = wallet_collection.find({"budget_id": str(budget_id)})
-
     wallet_ids = [str(wallet["_id"]) for wallet in wallets]  # Collect wallet IDs for deletion of incomes/expenses
     wallet_result = wallet_collection.delete_many({"budget_id": str(budget_id)})
-
     # Delete incomes and expenses for each deleted wallet
     total_incomes_deleted = 0
     total_expenses_deleted = 0
-
     for wallet_id in wallet_ids:
         income_result = income_collection.delete_many({"wallet_id": wallet_id})
         expense_result = expense_collection.delete_many({"wallet_id": wallet_id})
         total_incomes_deleted += income_result.deleted_count
         total_expenses_deleted += expense_result.deleted_count
-
     # Return success message, including number of related documents deleted
     return jsonify({
         "message": f'Budget with id: {budget_id} is deleted',

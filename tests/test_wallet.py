@@ -8,7 +8,8 @@ from datetime import datetime, timedelta
 
 # Add parent directory to Python path
 sys.path.append('../')
-from app import app, connect_to_db, add_wallet, get_wallets, update_wallet, delete_wallet
+from app import app
+from routes.wallet import connect_to_db, add_wallet, get_wallets, update_wallet, delete_wallet
 
 class TestWallet(unittest.TestCase):
     """Test case for handling wallet"""

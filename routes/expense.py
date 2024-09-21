@@ -101,8 +101,6 @@ def update_expense(_id):
             # Scenario 2: Changes NOT include wallet_id
             wallet_collection.update_one({"wallet_id": outdated_expense["wallet_id"]},
             {"$set": {"balance": + outdated_expense["amount"] - updated_expense["amount"]}, "$set": {"updated_at": datetime.datetime.now()}})
-    # Log the received ID for debugging
-    expense_bp.logger.debug(f"Received ID: {_id}")
     # Find and update the expense in MongoDB
     response = expense_collection.find_one_and_update(
         {"_id": ObjectId(_id)},

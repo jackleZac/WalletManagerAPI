@@ -98,8 +98,6 @@ def update_income(_id):
             # Scenario 2: Changes NOT include wallet_id
             wallet_collection.update_one({"wallet_id": outdated_income["wallet_id"]},
             {"$inc": {"balance": - outdated_income["amount"] + updated_income["amount"]}, "$set": {"updated_at": datetime.datetime.now()}})
-    # Log the received ID for debugging
-    income_bp.logger.debug(f"Received ID: {_id}")
     # Find and update the income in MongoDB
     response = income_collection.find_one_and_update(
         {"_id": ObjectId(_id)},

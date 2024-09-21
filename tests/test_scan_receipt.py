@@ -6,7 +6,8 @@ from flask import Flask
 
 # Add parent directory to Python path
 sys.path.append('../')
-from app import app, scan_receipt
+from app import app
+from routes.scanner import scan_receipt
 
 class ScanReceiptTestCase(unittest.TestCase):
     def setUp(self):

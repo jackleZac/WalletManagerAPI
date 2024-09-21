@@ -29,6 +29,9 @@ def connect_to_db():
         print('ERROR: An unexpected error occurrred: {e}')
     
 client, database_collection = connect_to_db()
+expense_collection = database_collection['expense']
+income_collection = database_collection['income']
+wallet_collection = database_collection['wallet']
 budget_collection = database_collection['budget']
 
 ############################################################################################
@@ -107,18 +110,27 @@ def update_budget(budget_id):
     if response is None:
         # A budget with the specified id is not found
         return jsonify({"message": f'budget with id: {budget_id} is not found'}), 404
-    else:
-        # A budget is found and updated
-        return jsonify({"message": f'budget with id: {budget_id} is updated'}), 200
 
-@budget_bp.route('/budget/<string:budget_id>', methods=["DELETE"])
-def delete_budget(budget_id):
-    """It should delete a budget"""
-    # Find and delete a budget from MongoDB
-    response = budget_collection.find_one_and_delete({"_id": ObjectId(budget_id)})
-    if response is None:
-        # A budget id is not found hence, is unable to delete
-        return jsonify({"message": f'Failed to delete expense with id: {budget_id}'}), 404
-    else:
-        # A budget id is found and deleted
-        return jsonify({"message": f'Expense with id: {budget_id} is deleted'}), 200
+    # Find and delete all wallets associated with this budget_id
+    wallets = wallet_collection.find({"budget_id": str(budget_id)})
+
+    wallet_ids = [str(wallet["_id"]) for wallet in wallets]  # Collect wallet IDs for deletion of incomes/expenses
+    wallet_result = wallet_collection.delete_many({"budget_id": str(budget_id)})
+
+    # Delete incomes and expenses for each deleted wallet
+    total_incomes_deleted = 0
+    total_expenses_deleted = 0
+
+    for wallet_id in wallet_ids:
+        income_result = income_collection.delete_many({"wallet_id": wallet_id})
+        expense_result = expense_collection.delete_many({"wallet_id": wallet_id})
+        total_incomes_deleted += income_result.deleted_count
+        total_expenses_deleted += expense_result.deleted_count
+
+    # Return success message, including number of related documents deleted
+    return jsonify({
+        "message": f'Budget with id: {budget_id} is deleted',
+        "wallets_deleted": wallet_result.deleted_count,
+        "incomes_deleted": total_incomes_deleted,
+        "expenses_deleted": total_expenses_deleted
+    }), 200

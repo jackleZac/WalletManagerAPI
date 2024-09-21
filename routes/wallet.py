@@ -97,9 +97,15 @@ def delete_wallet(wallet_id):
     # Find and delete a wallet from MongoDB
     response = wallet_collection.find_one_and_delete({"wallet_id": ObjectId(wallet_id)})
     if response is None:
-        # A wallet id is not found hence, is unable to delete
+        # A wallet id is not found, unable to delete
         return jsonify({"message": f'Failed to delete expense with id: {wallet_id}'}), 404
-    else:
-        # A wallet id is found and deleted
-        return jsonify({"message": f'Expense with id: {wallet_id} is deleted'}), 200
+    # Wallet is deleted, now delete associated incomes and expenses
+    income_result = income_collection.delete_many({"wallet_id": str(wallet_id)})
+    expense_result = expense_collection.delete_many({"wallet_id": str(wallet_id)})
+    # Return success message, including number of related documents deleted
+    return jsonify({
+        "message": f'Wallet with id: {wallet_id} is deleted',
+        "incomes_deleted": income_result.deleted_count,
+        "expenses_deleted": expense_result.deleted_count
+    }), 200
 

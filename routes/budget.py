@@ -102,7 +102,7 @@ def update_budget(budget_id):
     budget_bp.logger.debug(f"Received ID: {budget_id}")
     # Find and update the budget in MongoDB
     response = budget_collection.find_one_and_update(
-        {"_id": budget_id},
+        {"_id": ObjectId(budget_id)},
         {"$set": updated_budget} )
     if response is None:
         # A budget with the specified id is not found
@@ -115,7 +115,7 @@ def update_budget(budget_id):
 def delete_budget(budget_id):
     """It should delete a budget"""
     # Find and delete a budget from MongoDB
-    response = budget_collection.find_one_and_delete({"_id": budget_id})
+    response = budget_collection.find_one_and_delete({"_id": ObjectId(budget_id)})
     if response is None:
         # A budget id is not found hence, is unable to delete
         return jsonify({"message": f'Failed to delete expense with id: {budget_id}'}), 404

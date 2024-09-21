@@ -25,13 +25,13 @@ def connect_to_db():
     except pymongo.errors.ServerSelectionTimeoutError:
         print('ERROR: MongoDB connection timed out!')
     except Exception as e:
-        print('ERROR: An unexpected error occurrred: {e}')
+        print(f'ERROR: An unexpected error occurred: {e}')
     
 client, database_collection = connect_to_db()
 expense_collection = database_collection['expense']
 income_collection = database_collection['income']
 wallet_collection = database_collection['wallet']
-
+budget_collection = database_collection['budget']
 
 ############################################################################################
 #####                         ADD WALLET FUNCTIONS HERE                              #######
@@ -42,11 +42,12 @@ def add_wallet():
     """It should add a wallet to database"""
     # Receive parsed data sent from the front-end (React)
     wallet = request.json
-    # Generate a unique wallet_id
-    wallet_id = str(ObjectId())
-    wallet["_id"] = wallet_id
-    wallet["wallet_id"] = wallet_id
-    # Insert an wallet into MongoDB Atlas
+    # Verify if the provided budget_id exists in the budget collection
+    budget_id = wallet.get("budget_id")
+    budget = budget_collection.find_one({"_id": ObjectId(budget_id)})
+    if not budget:
+        return jsonify({"error": "Invalid budget_id, no matching budget found"}), 404
+    # Insert a wallet into MongoDB Atlas
     wallet_collection.insert_one(wallet)
     # Return a success message
     return jsonify({"Message": "A wallet has been succesfully added"}), 201
@@ -59,7 +60,8 @@ def get_wallets():
     # Convert the ObjectId instances to a JSON serializable format
     wallets = [
         {
-         "wallet_id": str(wallet["wallet_id"]), 
+         "wallet_id": str(wallet["_id"]), 
+         "budget_id": str(wallet["budget_id"]),
          "balance": wallet["balance"], 
          "created_at": wallet["created_at"], 
          "updated_at": wallet["updated_at"],
@@ -80,7 +82,7 @@ def update_wallet(wallet_id):
     wallet_bp.logger.debug(f"Received ID: {wallet_id}")
     # Find and update the wallet in MongoDB
     response = wallet_collection.find_one_and_update(
-        {"wallet_id": wallet_id},
+        {"_id": ObjectId(wallet_id)},
         {"$set": updated_wallet} )
     if response is None:
         # A wallet with the specified id is not found
@@ -93,7 +95,7 @@ def update_wallet(wallet_id):
 def delete_wallet(wallet_id):
     """It should delete a wallet"""
     # Find and delete a wallet from MongoDB
-    response = wallet_collection.find_one_and_delete({"wallet_id": wallet_id})
+    response = wallet_collection.find_one_and_delete({"wallet_id": ObjectId(wallet_id)})
     if response is None:
         # A wallet id is not found hence, is unable to delete
         return jsonify({"message": f'Failed to delete expense with id: {wallet_id}'}), 404

@@ -40,10 +40,6 @@ def add_budget():
     """It should add a budget to database"""
     # Receive parsed data sent from the front-end (React)
     budget = request.json
-    # Generate a unique budget_id
-    budget_id = str(ObjectId())
-    budget["_id"] = budget_id
-    budget["budget_id"] = budget_id
     # Insert an budget into MongoDB Atlas
     budget_collection.insert_one(budget)
     # Return a success message
@@ -57,7 +53,7 @@ def get_budgets():
     # Convert the ObjectId instances to a JSON serializable format
     budgets = [
         {
-         "budget_id": str(budget["budget_id"]),  
+         "budget_id": str(budget["_id"]),  
          "created_at": budget["created_at"], 
          "updated_at": budget["updated_at"],
          "wallet_id": budget["wallet_id"],
@@ -72,6 +68,31 @@ def get_budgets():
     # Return a JSON document to the front-end
     return jsonify({'budgets': budgets})
 
+@budget_bp.route('/budget/<budget_id>', methods=['GET'])
+def get_budget(budget_id):
+    """Retrieve a single budget by its budget_id."""
+    # Find the budget in MongoDB by budget_id
+    budget = budget_collection.find_one({"budget_id": ObjectId(budget_id)})
+    
+    if budget:
+        # Convert the ObjectId to a JSON serializable format
+        budget_data = {
+            "budget_id": str(budget["_id"]),
+            "created_at": budget["created_at"], 
+            "updated_at": budget["updated_at"],
+            "wallet_id": budget["wallet_id"],
+            "categories": {
+                "needs": budget["categories"].get("needs", {}),
+                "wants": budget["categories"].get("wants", {}),
+                "bills": budget["categories"].get("bills", {})
+            }
+        }
+        # Return the budget details in JSON format
+        return jsonify({'budget': budget_data})
+    else:
+        # Return a 404 error if the budget is not found
+        return jsonify({"error": "Budget not found"}), 404
+
 @budget_bp.route('/budget/<string:budget_id>', methods=["PUT"])
 def update_budget(budget_id):
     """It should update a budget"""
@@ -81,7 +102,7 @@ def update_budget(budget_id):
     budget_bp.logger.debug(f"Received ID: {budget_id}")
     # Find and update the budget in MongoDB
     response = budget_collection.find_one_and_update(
-        {"budget_id": budget_id},
+        {"_id": budget_id},
         {"$set": updated_budget} )
     if response is None:
         # A budget with the specified id is not found
@@ -94,7 +115,7 @@ def update_budget(budget_id):
 def delete_budget(budget_id):
     """It should delete a budget"""
     # Find and delete a budget from MongoDB
-    response = budget_collection.find_one_and_delete({"budget_id": budget_id})
+    response = budget_collection.find_one_and_delete({"_id": budget_id})
     if response is None:
         # A budget id is not found hence, is unable to delete
         return jsonify({"message": f'Failed to delete expense with id: {budget_id}'}), 404

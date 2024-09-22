@@ -53,7 +53,7 @@ def add_wallet():
     return jsonify({"Message": "A wallet has been succesfully added"}), 201
 
 @wallet_bp.route('/wallet', methods=['GET'])
-def get_wallets():
+def list_wallets():
     """It should return a list of all available expenses"""
     # Get a list of wallets from MongoDB
     list_of_wallets = wallet_collection.find({})
@@ -78,8 +78,6 @@ def update_wallet(wallet_id):
     """It should update a wallet"""
     # Get a content of updated wallet
     updated_wallet = request.json
-    # Log the received ID for debugging
-    wallet_bp.logger.debug(f"Received ID: {wallet_id}")
     # Find and update the wallet in MongoDB
     response = wallet_collection.find_one_and_update(
         {"_id": ObjectId(wallet_id)},

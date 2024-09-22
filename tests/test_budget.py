@@ -239,11 +239,9 @@ class TestBudget(unittest.TestCase):
         insert_budget = self.collection.insert_one(test_budget)
         self.assertTrue(insert_budget.acknowledged)
         test_budget_id = insert_budget.inserted_id
-
         # Make a DELETE request to delete the budget
         response = self.app.delete(f'/budget/{test_budget_id}')
         self.assertEqual(response.status_code, 200)
-
         # Check that the budget no longer exists in the database
         deleted_budget = self.collection.find_one({"_id": test_budget_id})
         self.assertIsNone(deleted_budget)

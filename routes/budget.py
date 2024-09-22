@@ -133,30 +133,23 @@ def update_budget(budget_id):
 @budget_bp.route('/budget/<string:budget_id>', methods=["DELETE"])
 def delete_budget(budget_id):
     """It should delete a budget and all associated wallets, incomes, and expenses"""
-
     # Find and delete the budget from MongoDB
     budget_response = budget_collection.find_one_and_delete({"_id": ObjectId(budget_id)})
-
     if budget_response is None:
         # Budget id is not found, unable to delete
         return jsonify({"message": f'Failed to delete budget with id: {budget_id}'}), 404
-
     # Find and delete all wallets associated with this budget_id
     wallets = wallet_collection.find({"budget_id": str(budget_id)})
-
     wallet_ids = [str(wallet["_id"]) for wallet in wallets]  # Collect wallet IDs for deletion of incomes/expenses
     wallet_result = wallet_collection.delete_many({"budget_id": str(budget_id)})
-
     # Delete incomes and expenses for each deleted wallet
     total_incomes_deleted = 0
     total_expenses_deleted = 0
-
     for wallet_id in wallet_ids:
         income_result = income_collection.delete_many({"wallet_id": wallet_id})
         expense_result = expense_collection.delete_many({"wallet_id": wallet_id})
         total_incomes_deleted += income_result.deleted_count
         total_expenses_deleted += expense_result.deleted_count
-
     # Return success message, including number of related documents deleted
     return jsonify({
         "message": f'Budget with id: {budget_id} is deleted',

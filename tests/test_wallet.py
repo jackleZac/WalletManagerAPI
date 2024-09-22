@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 # Add parent directory to Python path
 sys.path.append('../')
 from app import app
-from routes.wallet import connect_to_db, add_wallet, get_wallets, update_wallet, delete_wallet
+from routes.wallet import connect_to_db, add_wallet, list_wallets, update_wallet, delete_wallet
 
 class TestWallet(unittest.TestCase):
     """Test case for handling wallet"""
@@ -17,19 +17,39 @@ class TestWallet(unittest.TestCase):
         # Create a connection to MongoDB atlas
         self.client, self.db = connect_to_db()
         # Create a connection to collection 'wallet'
-        self.collection = self.db['wallet']
+        self.collection_wallet = self.db['wallet']
+        # Create a connection to collection 'budget'
+        self.collection_budget = self.db['budget']
         # Initialize test cleint to simulate requests to Flask App
         self.app = app.test_client()
+        # Create a budget for all test wallets
+        test_budget = {
+            "name": "Budget 1",
+            "created_at": datetime.now(),
+            "updated_at": datetime.now(),
+            "categories": {
+                "needs": {"Grocery": 400, "Health & Wellness": 150},
+                "wants": {"Entertainment": 100, "Hobbies": 75},
+                "bills": {"Housing": 1000, "Utilities": 200}
+            }
+        }
+        # Make a POST request to add the budget
+        self.app.post('/budget', json=test_budget, content_type='application/json')
+        # Get the budget_id
+        budget = self.collection_budget.insert_one(test_budget)
+        self.budget_id = budget.inserted_id
         
     def tearDown(self):
-        # Clean up recreated_ats in database
-        self.collection.delete_many({})
+        # Clean up collections in the database
+        self.collection_wallet.delete_many({})
+        self.collection_budget.delete_many({})
         
     def test_add_wallet(self):
         """It should add wallet to database and assert that it exists"""
         test_wallet = {
             "name": "Account 1",
             "balance": 6000.00,
+            "budget_id": str(self.budget_id),
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
             "type": "Savings",
@@ -40,7 +60,7 @@ class TestWallet(unittest.TestCase):
         # Assert that an wallet has been created
         self.assertEqual(response.status_code, 201)
         # Fetch the wallet from MongoDB atlas
-        wallet_from_database = self.collection.find_one({"name": test_wallet["name"]})
+        wallet_from_database = self.collection_wallet.find_one({"name": test_wallet["name"]})
         # Assert the wallet is not null
         self.assertIsNotNone(wallet_from_database)
         # Assert that the details are accurate
@@ -56,6 +76,7 @@ class TestWallet(unittest.TestCase):
         test_wallets = [{
             "wallet_id": str(ObjectId()),
             "name": "Account 1",
+            "budget_id": str(self.budget_id),
             "balance": 6000.00,
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
@@ -65,6 +86,7 @@ class TestWallet(unittest.TestCase):
            {
             "wallet_id": str(ObjectId()),
             "name": "Account 2",
+            "budget_id": str(self.budget_id),
             "balance": 5000.00,
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
@@ -74,6 +96,7 @@ class TestWallet(unittest.TestCase):
            {
             "wallet_id": str(ObjectId()),
             "name": "Account 3",
+            "budget_id": str(self.budget_id),
             "balance": 4000.00,
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
@@ -81,7 +104,7 @@ class TestWallet(unittest.TestCase):
             "target": 10000.00
         }]
         # Insert a list of wallets into MongoDB Atlas
-        insert_wallet = self.collection.insert_many(test_wallets)
+        insert_wallet = self.collection_wallet.insert_many(test_wallets)
         self.assertTrue(insert_wallet.acknowledged)
         # Make a GET request to get a list of existing wallets
         response = self.app.get('/wallet')
@@ -96,6 +119,7 @@ class TestWallet(unittest.TestCase):
         test_wallet = {
             "wallet_id": str(ObjectId()),
             "name": "Account 1",
+            "budget_id": str(self.budget_id),
             "balance": 6000.00,
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat(),
@@ -103,11 +127,11 @@ class TestWallet(unittest.TestCase):
             "target": 10000.00
         }
         # Insert a wallet into MongoDB Atlas
-        insert_wallet = self.collection.insert_one(test_wallet)
+        insert_wallet = self.collection_wallet.insert_one(test_wallet)
         self.assertTrue(insert_wallet.acknowledged)
         if (insert_wallet):
             # If succeeds, fetch the wallet from MongoDB Atlas
-            inserted_wallet = self.collection.find_one({"name": test_wallet["name"]})
+            inserted_wallet = self.collection_wallet.find_one({"name": test_wallet["name"]})
             # Assert that the wallet exists
             self.assertIsNotNone(inserted_wallet)
             print(inserted_wallet)
@@ -119,6 +143,7 @@ class TestWallet(unittest.TestCase):
             # Make changes to wallet balance
             update_wallet = {
                 "name": "Account 1",
+                "budget_id": str(self.budget_id),
                 "balance": 1000.00,
                 "updated_at": formatted_updated_at,
                 "type": "Savings",
@@ -128,7 +153,7 @@ class TestWallet(unittest.TestCase):
             # Assert that an wallet has been successfully updated
             self.assertEqual(response.status_code, 200)
             # Fetch the wallet from MongoDB Atlas
-            updated_wallet = self.collection.find_one({"wallet_id": test_wallet_id})
+            updated_wallet = self.collection_wallet.find_one({"wallet_id": test_wallet_id})
             self.assertIsNotNone(updated_wallet)
             # Assert that the balance is accurately updated
             self.assertEqual(updated_wallet["balance"], update_wallet["balance"])
@@ -143,12 +168,13 @@ class TestWallet(unittest.TestCase):
         test_wallet = {
             "wallet_id": str(ObjectId()),
             "name": "Account 1",
+            "budget_id": str(self.budget_id),
             "balance": 1000.00,
             "updated_at": datetime.now().isoformat(),
             "type": "Savings",
             "target": 10000.00  } 
         # Insert an wallet into MongoDB 
-        insert_wallet = self.collection.insert_one(test_wallet)
+        insert_wallet = self.collection_wallet.insert_one(test_wallet)
         # Assert that the wallet has been inserted into MongoDB
         self.assertTrue(insert_wallet.acknowledged)
         test_wallet_id = test_wallet["wallet_id"]
@@ -158,6 +184,6 @@ class TestWallet(unittest.TestCase):
         # Assert that the wallet has been successfully deleted
         self.assertEqual(response.status_code, 200)
         # Make an attempt to fetch the wallet again
-        deleted_wallet = self.collection.find_one({"wallet_id": test_wallet_id})
+        deleted_wallet = self.collection_wallet.find_one({"wallet_id": test_wallet_id})
         # Assert that the wallet is not found
         self.assertIsNone(deleted_wallet)

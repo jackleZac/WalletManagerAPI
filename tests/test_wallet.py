@@ -38,6 +38,8 @@ class TestWallet(unittest.TestCase):
         # Get the budget_id
         budget = self.collection_budget.insert_one(test_budget)
         self.budget_id = budget.inserted_id
+        print(f'budget_id: {self.budget_id}')
+        
         
     def tearDown(self):
         # Clean up collections in the database
@@ -117,7 +119,6 @@ class TestWallet(unittest.TestCase):
     def test_update_wallet(self):
         """It should update wallet and assert that it is accurate"""
         test_wallet = {
-            "wallet_id": str(ObjectId()),
             "name": "Account 1",
             "budget_id": str(self.budget_id),
             "balance": 6000.00,
@@ -136,7 +137,7 @@ class TestWallet(unittest.TestCase):
             self.assertIsNotNone(inserted_wallet)
             print(inserted_wallet)
             # Get the wallet id
-            test_wallet_id = test_wallet["wallet_id"]
+            test_wallet_id = inserted_wallet.inserted_id
             # Create an instance of current datetime
             datetime_current = datetime.now()
             formatted_updated_at = datetime_current.isoformat()
@@ -166,7 +167,6 @@ class TestWallet(unittest.TestCase):
     def test_delete_wallet(self):
         """It should delete a wallet"""
         test_wallet = {
-            "wallet_id": str(ObjectId()),
             "name": "Account 1",
             "budget_id": str(self.budget_id),
             "balance": 1000.00,
@@ -177,8 +177,8 @@ class TestWallet(unittest.TestCase):
         insert_wallet = self.collection_wallet.insert_one(test_wallet)
         # Assert that the wallet has been inserted into MongoDB
         self.assertTrue(insert_wallet.acknowledged)
-        test_wallet_id = test_wallet["wallet_id"]
-        print(test_wallet_id)
+        inserted_wallet = self.collection_wallet.find_one({"name": "Account 1"})
+        test_wallet_id = inserted_wallet.inserted_id
         # Make a DELETE request to delete wallet
         response = self.app.delete(f'/wallet/{test_wallet_id}')
         # Assert that the wallet has been successfully deleted
